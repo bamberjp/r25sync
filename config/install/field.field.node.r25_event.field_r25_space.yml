@@ -1,0 +1,19 @@
+# field.field.node.r25_event.field_r25_space.yml, v. RC1, bamberj, 05.12.2017
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_r25_space
+    - node.type.r25_event
+id: node.r25_event.field_r25_space
+field_name: field_r25_space
+entity_type: node
+bundle: r25_event
+label: Space
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

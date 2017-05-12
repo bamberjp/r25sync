@@ -1,0 +1,77 @@
+# core.entity_view_display.node.r25_event.default.yml, v. RC1, bamberj, 05.12.2017
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.r25_event.body
+    - field.field.node.r25_event.field_r25_end_date
+    - field.field.node.r25_event.field_r25_event_id
+    - field.field.node.r25_event.field_r25_organization
+    - field.field.node.r25_event.field_r25_space
+    - field.field.node.r25_event.field_r25_start_date
+    - node.type.r25_event
+  module:
+    - datetime
+    - text
+    - user
+id: node.r25_event.default
+targetEntityType: node
+bundle: r25_event
+mode: default
+content:
+  body:
+    type: text_default
+    weight: 6
+    region: content
+    label: visually_hidden
+    settings: {  }
+    third_party_settings: {  }
+  field_r25_end_date:
+    type: datetime_default
+    weight: 4
+    region: content
+    label: inline
+    settings:
+      format_type: medium
+      timezone_override: ''
+    third_party_settings: {  }
+  field_r25_event_id:
+    type: number_integer
+    weight: 1
+    region: content
+    label: inline
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+  field_r25_organization:
+    type: string
+    weight: 5
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  field_r25_space:
+    type: string
+    weight: 2
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  field_r25_start_date:
+    type: datetime_default
+    weight: 3
+    region: content
+    label: inline
+    settings:
+      format_type: medium
+      timezone_override: ''
+    third_party_settings: {  }
+  links:
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden: {  }

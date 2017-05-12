@@ -1,0 +1,54 @@
+<?php
+
+/* r25sync.install, v. RC1, bamberj, 05.12.2017 */
+
+/**
+ * @file
+ * Install file for r25sync.
+ */
+ 
+/**
+* Implements hook_install().
+*/
+function r25sync_install() {
+	/* lock content type from deletion */
+	$locked = Drupal::state()->get('node.type.locked');
+	$type = "r25_event";
+	$locked[$type] = $type;
+	Drupal::state()->set('node.type.locked', $locked);
+}
+
+/**
+* Implements hook_uninstall().
+*/
+function r25sync_uninstall() {
+	/* unlock content type */
+	$locked = Drupal::state()->get('node.type.locked');
+	$type = "r25_event";
+	unset($locked[$type]);
+	Drupal::state()->set('node.type.locked', $locked);
+	
+	/* delete node data */
+	$nodes = \Drupal::entityTypeManager()
+			->getStorage('node')
+			->loadByProperties(array('type' => $type));
+	
+	foreach ($nodes as $node) {
+		$node->delete();
+	}
+	
+	/* delete node type */
+	$content_type = \Drupal::entityManager()->getStorage('node_type')->load($type);
+	$content_type->delete();
+	
+	/* delete configuration */
+	\Drupal::service('config.factory')->getEditable('r25sync.configuration')->delete();
+	
+	/* update definitions */
+	/* see http://www.fuelforbrain.com/drupal-8-mismatched-entity-andor-field-definitions */
+	/*try {
+		\Drupal::entityDefinitionUpdateManager()->applyUpdates();
+	} catch (EntityStorageException $e) {
+		drupal_set_message(print_r($e, true), 'error');
+	}*/
+}

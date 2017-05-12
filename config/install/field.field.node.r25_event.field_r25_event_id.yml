@@ -1,0 +1,23 @@
+# field.field.node.node_r25.field_r25_event_id.yml, v. RC1, bamberj, 05.12.2017
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_r25_event_id
+    - node.type.r25_event
+id: node.r25_event.field_r25_event_id
+field_name: field_r25_event_id
+entity_type: node
+bundle: r25_event
+label: 'Event ID'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

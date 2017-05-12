@@ -1,0 +1,21 @@
+# field.field.node.r25_event.field_r25_start_date.yml, v. RC1, bamberj, 05.12.2017
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_r25_start_date
+    - node.type.r25_event
+  module:
+    - datetime
+id: node.r25_event.field_r25_start_date
+field_name: field_r25_start_date
+entity_type: node
+bundle: r25_event
+label: 'Start Date'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

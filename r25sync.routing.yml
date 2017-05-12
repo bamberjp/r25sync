@@ -1,0 +1,8 @@
+# r25sync.routing.yml, v. RC1, bamberj, 05.12.2017
+r25sync.settings:
+  path: 'admin/config/services/r25'
+  defaults:
+    _form: '\Drupal\r25sync\Form\R25ConfigurationForm'
+    _title: 'R25'
+  requirements:
+    _permission: 'administer site configuration'

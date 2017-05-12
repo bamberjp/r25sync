@@ -1,0 +1,20 @@
+# field.storage.node.field_r25_event_id.yml, v. RC1, bamberj, 05.12.2017
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_r25_event_id
+field_name: field_r25_event_id
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: true
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

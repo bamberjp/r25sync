@@ -1,0 +1,148 @@
+<?php
+
+/* r25sync.module, v. RC1, bamberj, 05.12.2017 */
+
+/**
+ * @file
+ * Module file for r25sync.
+ */
+ 
+use Drupal\Component\Utility\Xss;
+ 
+/**
+* Implements hook_cron().
+*/
+function r25sync_cron() {
+	r25sync_update();
+}
+
+function r25sync_update() {
+	if ($data = r25sync_pull()) {
+		r25sync_map($data);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function r25sync_pull() {
+	/* check configuration */
+	$config = \Drupal::config('r25sync.configuration');
+	
+	if ($config->get('organization_id') == null ||
+		$config->get('space_query_id') == null ||
+		$config->get('username') == null ||
+		$config->get('password') == null) return false;
+	
+	/* get resource URL */
+	$url = "https://25live.collegenet.com/25live/data/" . $config->get('organization_id') . "/run/rm_rsrvs.xml?space_query_id=" . $config->get('space_query_id');
+
+	if (($end_dt = $config->get('end_dt')) != null)
+		if ($end_dt != 0)
+			$url .= "&start_dt=0&end_dt=+" . $end_dt;
+	
+	/* setup curl */
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_USERPWD, $config->get('username') . ":" . $config->get('password'));
+	curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	
+	$data = curl_exec($ch);
+	$reservations = array();
+	
+	if ($error = curl_error($ch)) {
+		\Drupal::logger('r25sync')->error("[R25Sync Error] " . $error);	/* log error */	
+	} else {
+		/* parse xml */
+		$xml = simplexml_load_string($data);
+		if ($xml == false) {
+			$i = 0;
+			$message = "";
+			foreach(libxml_get_errors() as $error) {
+				if (strlen($message)) $message .= ", ";
+				$message .= "(" . $i . ") " . $error->message;
+			}
+			\Drupal::logger('r25sync')->error("[R25Sync Error] " . $message);
+		} else {
+			/* based on https://github.com/mmardosz/print25live/blob/master/parser.php */
+			/* note: code assumes space, organization and event_type precede space_reservation atoms. */
+			$space = array();
+			$organization = array();
+			$event_type = array();
+			foreach ($xml->children('r25', true) as $child) {
+				switch(Xss::filter($child->getName())) {
+					case 'space':
+						$space[Xss::filter((string)$child->space_id_ref)] = Xss::filter((string)$child->space_name);
+						break;
+					case 'organization':
+						$organization[Xss::filter((string)$child->organization_id_ref)] = Xss::filter((string)$child->organization_name);
+						break;
+					case 'event_type':
+						$event_type[Xss::filter((string)$child->event_type_id_ref)] = Xss::filter((string)$child->event_type_name);
+						break;
+					case 'space_reservation':
+						$event_start_dt = Xss::filter((string)$child->event_start_dt);
+						$event_end_dt = Xss::filter((string)$child->event_end_dt);
+					
+						$reservations[Xss::filter((string)$child->event_id)] = array(
+							'name' => Xss::filter((string)$child->event_name),
+							'space' => $space[Xss::filter((string)$child->space_id)],
+							'event_start_dt' =>date("Y-m-d\TH:i:s",  strtotime("-" . substr($event_start_dt, -5, 2) . " hours", strtotime($event_start_dt))),
+							'event_end_dt' => date("Y-m-d\TH:i:s", strtotime("-" . substr($event_end_dt, -5, 2) . " hours", strtotime($event_end_dt))),
+							'organization' =>$organization[Xss::filter((string)$child->organization_id)],
+						);
+						break;
+					default:
+				}
+			}
+		}
+	}
+	
+	curl_close($ch);
+	return $reservations;
+}
+
+function r25sync_map($data) {
+	foreach ($data as $event_id => $details) {
+		$query = \Drupal::entityQuery('node')
+					->condition('type', 'r25_event')
+					->condition('field_r25_event_id', $event_id, '=')
+					->range(0, 1);
+		
+		$result = $query->execute();
+		if (count($result)) {
+			/* update existing node */
+			$nid = array_values($result)[0];
+			
+			$node = \Drupal\node\Entity\Node::load($nid);
+			
+			$node->changed = REQUEST_TIME;
+			$node->title = $details['name'];
+			$node->field_r25_start_date = $details['event_start_dt'];
+			$node->field_r25_end_date = $details['event_end_dt'];
+			$node->field_r25_organization = $details['organization'];
+			$node->field_r25_space = $details['space'];
+			
+			$node->save();
+		} else {
+			$node = \Drupal\node\Entity\Node::create([
+				'type' => 'r25_event',
+				'langcode' => 'en',
+				'created' => REQUEST_TIME,
+				'changed' => REQUEST_TIME,
+				'uid' => 1,
+				'title' => $details['name'],
+				'field_r25_event_id' => $event_id,
+				'field_r25_start_date' => $details['event_start_dt'],
+				'field_r25_end_date' => $details['event_end_dt'],
+				'field_r25_organization' => $details['organization'],
+				'field_r25_space' => $details['space'],
+			]);
+			
+			$node->setPromoted(false);
+			
+			$node->save();
+		}
+	}
+}

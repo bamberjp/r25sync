@@ -1,0 +1,7 @@
+# r25sync.links.menu.yml, v. RC1, bamberj, 05.12.2017
+r25sync.settings:
+  title: 'CollegeNET, Inc. 25Live'
+  description: 'Configure settings for R25 Data Feed.'
+  route_name: r25sync.settings
+  parent: system.admin_config_services
+  weight: 1

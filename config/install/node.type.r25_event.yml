@@ -1,0 +1,17 @@
+# node.type.r25_event.yml, v. RC1, bamberj, 05.12.2017
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: 'R25 Event'
+type: r25_event
+description: ''
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

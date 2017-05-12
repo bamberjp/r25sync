@@ -1,0 +1,31 @@
+# es.po, v. RC1, bamberj, 05.12.2017
+
+#: r25sync.links.menu.yml
+msgid "Configure settings for R25 Data Feed."
+msgstr "Configure los ajustes de R25 Data Feed."
+
+#: /src/Form/R25ConfigurationForm.php
+msgid "Connection Details"
+msgstr "Detalles de conexión"
+msgid "Organization ID"
+msgstr "ID de la organización"
+msgid "Space Query ID"
+msgstr "ID de consulta de espacio"
+msgid "Account Credentials"
+msgstr "Credenciales de cuenta"
+msgid "Username"
+msgstr "Nombre de usuario"
+msgid "Password"
+msgstr "Contraseña"
+msgid "Save Configuration"
+msgstr "Guardar configuración"
+msgid "Refresh Data"
+msgstr "Actualizar datos"
+msgid "Data refreshed."
+msgstr "Datos actualizados."
+msgid "Data refresh failed. Please check configuration."
+msgstr "Error de actualización de datos. Compruebe la configuración."
+msgid "End Date"
+msgstr "Fecha final"
+msgid "Obtain reservations that occur on or before this date (number of days relative to today)."
+msgstr "Obtener reservas que ocurran en o antes de esta fecha (número de días en relación a hoy)."

@@ -1,0 +1,21 @@
+# field.storage.node.field_r25_organization.yml, v. RC1, bamberj, 05.12.2017
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_r25_organization
+field_name: field_r25_organization
+entity_type: node
+type: string
+settings:
+  max_length: 255
+  is_ascii: false
+  case_sensitive: false
+module: core
+locked: true
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

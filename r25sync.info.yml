@@ -1,0 +1,10 @@
+# r25sync.info.yml, v. RC1, bamberj, 05.12.2017
+name: R25Sync
+description: Automatically syncronize 25Live Reservation Data into Drupal.
+type: module
+core: 8.x
+version: RC1
+package: bamberj
+
+interface translation project: r25sync
+interface translation server pattern: modules/custom/%project/translations/%language.po
