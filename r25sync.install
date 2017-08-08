@@ -1,6 +1,6 @@
 <?php
 
-/* r25sync.install, v. RC1, bamberj, 05.12.2017 */
+/* r25sync.install, v. RC2, bamberj, 05.12.2017 */
 
 /**
  * @file
@@ -51,4 +51,7 @@ function r25sync_uninstall() {
 	} catch (EntityStorageException $e) {
 		drupal_set_message(print_r($e, true), 'error');
 	}*/
+	
+	$queue = \Drupal::queue('r25sync_queue');
+	if ($queue) $queue->deleteQueue();
 }
