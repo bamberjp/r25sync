@@ -1,6 +1,6 @@
 <?php
 
-/* R25ConfigurationForm.php, v. RC1, bamberj, 05.12.2017 */
+/* R25ConfigurationForm.php, v. RC2, bamberj, 08.08.2017 */
 
 /**
  * @file
@@ -29,6 +29,12 @@ class R25ConfigurationForm extends FormBase {
 	*/
 	public function buildForm(array $form, FormStateInterface $form_state) {
 		$config = \Drupal::config('r25sync.configuration');
+		$queue = \Drupal::queue('r25sync_queue');
+		
+		$form['help'] = array(
+		  '#type' => 'markup',
+		  '#markup' => $this->t('There are @number items remaing in the proccessing queue.', array('@number' => $queue->numberOfItems())),
+		);
 		
 		$form['connection_details'] = array(
 		  '#type' => 'fieldset',
@@ -45,12 +51,13 @@ class R25ConfigurationForm extends FormBase {
 			'#title' => $this->t('Space Query ID'),
 			'#default_value' => $config->get('space_query_id'),
 			'#size' => 32,
-		);	
+		);
+		$duration_increments = array(30, 60, 90, 120);
 		$form['connection_details']['end_dt'] = array(
 			'#type' => 'select',
 			'#title' => $this->t('End Date'),
 			'#description' => $this->t('Obtain reservations that occur on or before this date (number of days relative to today).'),
-			'#options' => range(0, 30),
+			'#options' => array_combine($duration_increments, $duration_increments),
 			'#default_value' => $config->get('end_dt'),
 		);
 		$form['account_credentials'] = array(
@@ -72,10 +79,10 @@ class R25ConfigurationForm extends FormBase {
 			'#type' => 'submit',
 			'#value' => $this->t('Save Configuration'),
 		);
-		$form['refresh'] = array(
+		/*$form['refresh'] = array(
 			'#type' => 'submit',
 			'#value' => $this->t('Refresh Data'),
-		);
+		);*/
 		
 		return $form;
 	}
@@ -110,13 +117,13 @@ class R25ConfigurationForm extends FormBase {
 				
 				$config->save();
 				break;
-			case (string)$this->t('Refresh Data'):
+			/*case (string)$this->t('Refresh Data'):
 				if (r25sync_update()) {
 					drupal_set_message($this->t("Data refreshed."));
 				} else {
 					drupal_set_message($this->t("Data refresh failed. Please check configuration."));
 				}
-				break;
+				break;*/
 			default:
 		}
 	}
