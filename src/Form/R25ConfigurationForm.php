@@ -75,6 +75,16 @@ class R25ConfigurationForm extends FormBase {
 			'#title' => $this->t('Password'),
 			'#size' => 32,
 		);
+		$form['filter'] = array(
+			'#type' => 'fieldset',
+			'#title' => $this->t('Filter'),
+		);
+		$form['filter']['regex'] = array(
+			'#type' => 'textfield',
+			'#title' => $this->t('Regex'),
+			'#description' => $this->t('Ignore reservations with matching titles.'),
+			'#default_value' => $config->get('regex'),
+		);
 		$form['submit'] = array(
 			'#type' => 'submit',
 			'#value' => $this->t('Save Configuration'),
@@ -110,9 +120,10 @@ class R25ConfigurationForm extends FormBase {
 						$key != "form_build_id" &&
 						$key != "form_token" &&
 						$key != "form_id" &&
-						$key != "op")
-							if (!empty($value) || ($key == "end_dt"))	/* permit zero value for end_dt */
+						$key != "op") {	
+							if (!empty(trim($value)) || ($key == "end_dt"))	/* permit zero value for end_dt */
 								$config->set($key, $value);
+						}
 				}
 				
 				$config->save();

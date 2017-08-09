@@ -14,7 +14,7 @@ use Drupal\Component\Utility\Xss;
  * @QueueWorker(
  *   id = "r25sync_queue",
  *   title = @Translation("R25SyncQueue"),
- *   cron = {"time" = 30}
+ *   cron = {"time" = 60}
  * )
  */
 class R25SyncQueue extends QueueWorkerBase {
@@ -28,6 +28,9 @@ class R25SyncQueue extends QueueWorkerBase {
 				break;
 			case 'map':
 				$this->processEvent($data);
+				break;
+			case 'eval':
+				$this->processEval($data);
 				break;
 			default:
 				break;
@@ -119,6 +122,11 @@ class R25SyncQueue extends QueueWorkerBase {
 	}
 	
 	public function processEvent($data) {
+		/* evaluate name */
+		$config = \Drupal::config('r25sync.configuration');
+		$exp = $config->get('regex');
+		if (preg_match($exp, $data['name'])) return;
+		
 		$query = \Drupal::entityQuery('node')
 					->condition('type', 'r25_event')
 					->condition('field_r25_event_id', $data['event_id'], '=')
@@ -157,6 +165,17 @@ class R25SyncQueue extends QueueWorkerBase {
 			$node->setPromoted(false);
 			
 			$node->save();
+		}
+	}
+	
+	function processEval($data) {
+		$node = node_load($data['nid']);
+		$config = \Drupal::config('r25sync.configuration');
+		$exp = $config->get('regex');
+		
+		if(preg_match($exp, $node->getTitle())) {
+			\Drupal::logger('r25sync')->notice("Remove R25Event " . $node->getTitle() . " (" . $node->id() . ").");
+			$node->delete();
 		}
 	}
 }

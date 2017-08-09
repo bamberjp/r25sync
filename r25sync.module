@@ -14,10 +14,6 @@ function r25sync_cron() {
 	$queue = \Drupal::queue('r25sync_queue');
 	
 	if ($queue->numberOfItems() == 0) {
-		/*if ($data = r25sync_pull()) {
-			
-		} else {
-		}*/
 		$config = \Drupal::config('r25sync.configuration');
 		$max = $config->get('end_dt');
 		for($i = 0; $i < $max; $i++) {
@@ -28,88 +24,19 @@ function r25sync_cron() {
 				)
 			);
 		}
-	}
-}
-
-function r25sync_pull() {
-	/* check configuration */
-	$config = \Drupal::config('r25sync.configuration');
+		
+		/* evaluate existing nodes */
+		$nodes = \Drupal::entityTypeManager()
+			->getStorage('node')
+			->loadByProperties(array('type' => "r25_event"));
 	
-	if ($config->get('organization_id') == null ||
-		$config->get('space_query_id') == null ||
-		$config->get('username') == null ||
-		$config->get('password') == null) return false;
-	
-	/* get resource URL */
-	$url = "https://25live.collegenet.com/25live/data/" . $config->get('organization_id') . "/run/rm_rsrvs.xml?space_query_id=" . $config->get('space_query_id');
-
-	if (($end_dt = $config->get('end_dt')) != null)
-		if ($end_dt != 0)
-			$url .= "&start_dt=0&end_dt=+" . $end_dt;
-	
-	/* setup curl */
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_USERPWD, $config->get('username') . ":" . $config->get('password'));
-	curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-	
-	$data = curl_exec($ch);
-	$reservations = array();
-	
-	if ($error = curl_error($ch)) {
-		\Drupal::logger('r25sync')->error("[R25Sync Error] " . $error);	/* log error */	
-	} else {
-		/* parse xml */
-		$xml = simplexml_load_string($data);
-		if ($xml == false) {
-			$i = 0;
-			$message = "";
-			foreach(libxml_get_errors() as $error) {
-				if (strlen($message)) $message .= ", ";
-				$message .= "(" . $i . ") " . $error->message;
-			}
-			\Drupal::logger('r25sync')->error("[R25Sync Error] " . $message);
-		} else {
-			$queue = \Drupal::queue('r25sync_queue');
-			/* based on https://github.com/mmardosz/print25live/blob/master/parser.php */
-			/* note: code assumes space, organization and event_type precede space_reservation atoms. */
-			$space = array();
-			$organization = array();
-			$event_type = array();
-			foreach ($xml->children('r25', true) as $child) {
-				switch(Xss::filter($child->getName())) {
-					case 'space':
-						$space[Xss::filter((string)$child->space_id_ref)] = Xss::filter((string)$child->space_name);
-						break;
-					case 'organization':
-						$organization[Xss::filter((string)$child->organization_id_ref)] = Xss::filter((string)$child->organization_name);
-						break;
-					case 'event_type':
-						$event_type[Xss::filter((string)$child->event_type_id_ref)] = Xss::filter((string)$child->event_type_name);
-						break;
-					case 'space_reservation':
-						$event_start_dt = Xss::filter((string)$child->event_start_dt);
-						$event_end_dt = Xss::filter((string)$child->event_end_dt);
-					
-						$data = array(
-							'op' => 'map',
-							'event_id' => Xss::filter((string)$child->event_id),
-							'name' => Xss::filter((string)$child->event_name),
-							'space' => $space[Xss::filter((string)$child->space_id)],
-							'event_start_dt' =>date("Y-m-d\TH:i:s",  strtotime("-" . substr($event_start_dt, -5, 2) . " hours", strtotime($event_start_dt))),
-							'event_end_dt' => date("Y-m-d\TH:i:s", strtotime("-" . substr($event_end_dt, -5, 2) . " hours", strtotime($event_end_dt))),
-							'organization' =>$organization[Xss::filter((string)$child->organization_id)],
-						);
-						
-						$queue->createItem($data);
-						break;
-					default:
-				}
-			}
+		foreach ($nodes as $node) {
+			$queue->createItem(
+				array(
+					'op' => 'eval', 
+					'nid' => $node->id(),
+				)
+			);
 		}
 	}
-	
-	curl_close($ch);
-	return $reservations;
 }
